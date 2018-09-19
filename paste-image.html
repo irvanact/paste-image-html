@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+		.image {
+		  border: solid 1px #aaa;
+		  min-height: 200px;
+		  width: 100%;
+		  margin-top: 1em;
+		  cursor: pointer;
+		  transition: 300ms all;
+		  position: relative;
+		}
+	</style>
+</head>
+<body>
+<label >Image</label>
+<div >
+<div>
+    <div class="image" contenteditable="true">
+
+    </div>
+</div>
+<input type="text" name="base64-image" id="dataUrl" value="" />
+</div>
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+	$('.image').on('paste', function (e) {
+
+      var ua = window.navigator.userAgent;
+      var msie = ua.indexOf("MSIE ");
+
+      if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))  // If Internet Explorer, return version number
+      {
+        $('.image').empty();
+        var waitToPastInterval = setInterval(function () {
+          if ($('.image').children().length > 0) {
+          clearInterval(waitToPastInterval);
+          $('#dataUrl').attr('value', $('.image').find('img')[0].src);
+          $('.image').find('img')[0].id = "capture";
+          var w =  $('.image').find('img')[0].width;
+          var h =  $('.image').find('img')[0].height;
+          $(".image").css({
+                      'width':w,
+                      'height':h
+          });
+        }
+        }, 1);
+      }
+      else  // If another browser, return 0
+      {
+        var orgEvent = e.originalEvent;
+        for (var i = 0; i < orgEvent.clipboardData.items.length; i++) {
+          if (orgEvent.clipboardData.items[i].kind == "file" && orgEvent.clipboardData.items[i].type == "image/png") {
+            var imageFile = orgEvent.clipboardData.items[i].getAsFile();
+            var fileReader = new FileReader();
+
+            fileReader.onload = function () {
+              $('#dataUrl').attr('value', fileReader.result);
+
+              var img = document.createElement('img');
+              var dataURL = fileReader.result;
+              img.src= fileReader.result;
+
+
+              var poll = setInterval(function () {
+              if (img.naturalWidth) {
+                  clearInterval(poll);
+                  var w = img.width;
+                  var h = img.height;
+                  if($('.image').find('img').length > 0 ){
+                    $('.image').find('img')[0].id = "capture";
+                    $('#dataUrl').attr('value', dataURL);
+                      return $(".image").css({
+                      'width':w,
+                      'height':h
+                    }).data({'width':w, 'height':h});
+                  }else{
+                    $('#dataUrl').attr('value', dataURL);
+                      return $(".image").css({
+                      'backgroundImage': "url(" + dataURL + ")",
+                      'width':w,
+                      'height':h
+                    }).data({'width':w, 'height':h});
+                  }
+
+
+              }
+            }, 10);
+
+            }
+
+            fileReader.readAsDataURL(imageFile);
+            break;
+          }
+        }
+      }
+    });
+
+    $('.image').on('keydown', function (e) {
+      var key = e.keyCode || e.charCode;
+
+      if( key == 8 || key == 46 ){
+        $("#dataUrl").removeAttr("value");
+        $(this).parent().find('img').not(this).remove();
+        $(".image").removeAttr("style");
+      }
+
+    });
+});
+</script>
+</body>
+
+</html>
